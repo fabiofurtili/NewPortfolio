@@ -804,6 +804,7 @@ footer:hover .easter-egg {
 .snake-score {
   display: flex;
   gap: 12px;
+  flex-wrap: wrap;
   font-size: 13px;
   color: var(--muted);
 }
@@ -832,6 +833,183 @@ footer:hover .easter-egg {
   margin-top: 10px;
   color: var(--muted);
   font-size: 13px;
+}
+
+.glitch-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(6, 8, 12, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 205;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.glitch-overlay.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.glitch-panel {
+  width: min(92vw, 560px);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 5px;
+  background: #0c0f14;
+  box-shadow: var(--shadow);
+  padding: 16px;
+  transform: translateY(8px) scale(0.98);
+  opacity: 0;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+  font-family: "Press Start 2P", "Space Grotesk", sans-serif;
+}
+
+.glitch-overlay.is-open .glitch-panel {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+.glitch-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.glitch-title {
+  font-size: 13px;
+}
+
+.glitch-score {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.glitch-score strong {
+  color: var(--ink);
+}
+
+.glitch-close {
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.06);
+  color: var(--ink);
+  border-radius: 5px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-family: "Space Grotesk", sans-serif;
+}
+
+.glitch-canvas {
+  width: 100%;
+  height: auto;
+  border-radius: 5px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: #090c10;
+  image-rendering: pixelated;
+}
+
+.glitch-hint {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 0.4px;
+}
+
+.glitch-start {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 5px;
+  font-size: 10px;
+  color: var(--ink);
+  display: none;
+  text-align: center;
+  gap: 6px;
+}
+
+.glitch-start.is-visible {
+  display: grid;
+}
+
+.glitch-start-title {
+  font-size: 11px;
+}
+
+.glitch-start-sub {
+  color: var(--muted);
+}
+
+.glitch-legend {
+  margin-top: 10px;
+  display: grid;
+  gap: 6px;
+  font-size: 9px;
+  color: var(--muted);
+}
+
+.glitch-status {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px dashed rgba(255,255,255,0.2);
+  border-radius: 5px;
+  font-size: 10px;
+  color: var(--ink);
+  display: none;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.glitch-status.is-visible {
+  display: flex;
+}
+
+.glitch-status button {
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.06);
+  color: var(--ink);
+  border-radius: 5px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-family: "Space Grotesk", sans-serif;
+}
+
+.glitch-leaderboard-toggle {
+  margin-top: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.06);
+  color: var(--ink);
+  border-radius: 5px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 10px;
+  width: fit-content;
+}
+
+.glitch-leaderboard {
+  margin-top: 8px;
+  font-size: 10px;
+  color: var(--muted);
+  display: none;
+  gap: 6px;
+}
+
+.glitch-leaderboard.is-open {
+  display: grid;
+}
+
+.glitch-leaderboard ol {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
 }
 
 .reveal {

@@ -1,0 +1,801 @@
+:root {
+  --bg: #090d14;
+  --panel: #111827;
+  --ink: #e5edf9;
+  --muted: #9aa8bf;
+  --line: rgba(255, 255, 255, 0.14);
+  --accent: #38bdf8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(circle at 20% 0%, #13243a, #090d14 45%);
+  color: var(--ink);
+  font-family: "Space Grotesk", sans-serif;
+}
+
+.editor {
+  width: min(1320px, 96vw);
+  margin: 18px auto 30px;
+  display: grid;
+  gap: 12px;
+}
+
+.topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.topbar h1 {
+  margin: 0;
+  font-family: "Press Start 2P", monospace;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.meta {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.panel {
+  background: rgba(17, 24, 39, 0.88);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.controls {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+label {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  min-width: 0;
+}
+
+input,
+select,
+textarea,
+button {
+  font: inherit;
+}
+
+input,
+select,
+textarea {
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: #0b1220;
+  color: var(--ink);
+  padding: 8px 10px;
+}
+
+.controls input,
+.controls select {
+  width: 100%;
+}
+
+button {
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: #152236;
+  color: var(--ink);
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+button:hover {
+  border-color: rgba(56, 189, 248, 0.6);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.controls .row {
+  grid-column: 1 / -1;
+  flex-wrap: nowrap;
+}
+
+.controls .row button {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.io .row {
+  flex-wrap: nowrap;
+}
+
+.io .row button {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.status {
+  font-size: 12px;
+  color: #86efac;
+  min-height: 18px;
+}
+
+.controls .status {
+  grid-column: 1 / -1;
+}
+
+.status.is-error {
+  color: #fca5a5;
+}
+
+.palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tile-btn {
+  width: 56px;
+  height: 56px;
+  min-width: 56px;
+  border: 1px solid var(--line);
+  background: #0d1728;
+  color: var(--ink);
+  border-radius: 5px;
+  padding: 4px;
+  position: relative;
+  text-align: center;
+}
+
+.tile-btn.is-active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.45) inset;
+}
+
+.tile-key {
+  position: absolute;
+  top: 3px;
+  left: 4px;
+  font-family: "Press Start 2P", monospace;
+  font-size: 9px;
+  color: #e2e8f0;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.7);
+}
+
+.tile-thumb {
+  width: 100%;
+  height: 100%;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: block;
+  background-size: cover;
+  background-position: center;
+  image-rendering: pixelated;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
+.legend strong {
+  color: var(--ink);
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+}
+
+.thumb-empty {
+  background: #0b1220;
+}
+
+.thumb-floor-a-top-left {
+  background-image: url("./images/tiles/floor_a/top_left.png");
+}
+
+.thumb-floor-a-top-center {
+  background-image: url("./images/tiles/floor_a/top_center.png");
+}
+
+.thumb-floor-a-top-right {
+  background-image: url("./images/tiles/floor_a/top_right.png");
+}
+
+.thumb-floor-a-mid-left {
+  background-image: url("./images/tiles/floor_a/mid_left.png");
+}
+
+.thumb-floor-a-mid-center {
+  background-image: url("./images/tiles/floor_a/mid_center.png");
+}
+
+.thumb-floor-a-mid-right {
+  background-image: url("./images/tiles/floor_a/mid_right.png");
+}
+
+.thumb-floor-a-bottom-left {
+  background-image: url("./images/tiles/floor_a/bottom_left.png");
+}
+
+.thumb-floor-a-bottom-center {
+  background-image: url("./images/tiles/floor_a/bottom_center.png");
+}
+
+.thumb-floor-a-bottom-right {
+  background-image: url("./images/tiles/floor_a/bottom_right.png");
+}
+
+.thumb-water-a-left {
+  background-image: url("./images/tiles/water_a/left_0.png");
+}
+
+.thumb-water-a-mid {
+  background-image: url("./images/tiles/water_a/mid_0.png");
+}
+
+.thumb-water-a-right {
+  background-image: url("./images/tiles/water_a/right_0.png");
+}
+
+.thumb-wall-a-top-left {
+  background-image: url("./images/tiles/wall_a/top_left.png");
+}
+
+.thumb-wall-a-top-center {
+  background-image: url("./images/tiles/wall_a/top_center.png");
+}
+
+.thumb-wall-a-top-right {
+  background-image: url("./images/tiles/wall_a/top_right.png");
+}
+
+.thumb-wall-a-mid-left {
+  background-image: url("./images/tiles/wall_a/mid_left.png");
+}
+
+.thumb-wall-a-mid-center-a {
+  background-image: url("./images/tiles/wall_a/mid_center_a.png");
+}
+
+.thumb-wall-a-mid-center-b {
+  background-image: url("./images/tiles/wall_a/mid_center_b.png");
+}
+
+.thumb-wall-a-mid-right {
+  background-image: url("./images/tiles/wall_a/mid_right.png");
+}
+
+.thumb-wall-a-bottom-left {
+  background-image: url("./images/tiles/wall_a/bottom_left.png");
+}
+
+.thumb-wall-a-bottom-center {
+  background-image: url("./images/tiles/wall_a/bottom_center.png");
+}
+
+.thumb-wall-a-bottom-right {
+  background-image: url("./images/tiles/wall_a/bottom_right.png");
+}
+
+.thumb-ground {
+  background-image: url("./images/tiles/floor_tile.png");
+}
+
+.thumb-ground-moss {
+  background-image: url("./images/tiles/thumbs/ground_moss.png");
+}
+
+.thumb-ground-crack {
+  background-image: url("./images/tiles/thumbs/ground_crack.png");
+}
+
+.thumb-bridge {
+  background-image: url("./images/tiles/thumbs/bridge.png");
+}
+
+.thumb-bridge-a {
+  background-image: url("./images/tiles/bridge_a/up.png");
+}
+
+.thumb-bridge-b {
+  background-image: url("./images/tiles/bridge_a/down.png");
+}
+
+.thumb-spike {
+  background-image: url("./images/tiles/hazards/spike.png");
+}
+
+.thumb-lava {
+  background-image: url("./images/tiles/hazards/lava_0.png");
+}
+
+.thumb-coin {
+  background-image: url("./images/items/coin/coin_0.png");
+}
+
+.thumb-enemy {
+  background-image: url("./images/tiles/thumbs/enemy.png");
+}
+
+.thumb-door {
+  background-image: url("./images/tiles/thumbs/door.png");
+}
+
+.thumb-chest {
+  background-image:
+    linear-gradient(180deg, #b9914f 0 22%, transparent 22%),
+    linear-gradient(90deg, transparent 0 16%, #e2bf78 16% 23%, transparent 23% 77%, #e2bf78 77% 84%, transparent 84%),
+    linear-gradient(180deg, #6c4625 0 45%, #4a2f19 46% 100%);
+}
+
+.thumb-chest-open {
+  background-image:
+    linear-gradient(180deg, transparent 0 34%, #1f140b 35% 60%, transparent 60%),
+    linear-gradient(180deg, #a97d41 0 16%, #4e321c 17% 36%, #6c4625 37% 100%);
+}
+
+.thumb-key {
+  background-image: url("./images/ui/key.png");
+}
+
+.thumb-switch {
+  background-image: url("./images/tiles/thumbs/switch.png");
+}
+
+.thumb-torch {
+  background-image: url("./images/tiles/thumbs/torch.png");
+}
+
+.thumb-chain {
+  background-image: url("./images/tiles/thumbs/chain.png");
+}
+
+.thumb-web {
+  background-image: url("./images/tiles/thumbs/web.png");
+}
+
+.thumb-rune {
+  background-image: url("./images/tiles/thumbs/rune.png");
+}
+
+.thumb-barrel {
+  background-image: url("./images/tiles/thumbs/barrel.png");
+}
+
+.thumb-crate {
+  background-image: url("./images/tiles/thumbs/crate.png");
+}
+
+.thumb-vase {
+  background-image: url("./images/tiles/thumbs/vase.png");
+}
+
+.thumb-mushroom {
+  background-image: url("./images/tiles/thumbs/mushroom.png");
+}
+
+.thumb-window {
+  background-image: url("./images/tiles/thumbs/window.png");
+}
+
+.thumb-spawn {
+  background-image: url("./images/tiles/thumbs/spawn.png");
+}
+
+.thumb-goal {
+  background-image: url("./images/tiles/thumbs/goal.png");
+}
+
+.grid-wrap {
+  overflow: auto;
+}
+
+.grid {
+  display: grid;
+  gap: 1px;
+  background: #0a1424;
+  width: fit-content;
+  border: 1px solid var(--line);
+  padding: 1px;
+}
+
+.cell {
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 0;
+  margin: 0;
+  padding: 0;
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+  line-height: 24px;
+  text-align: center;
+}
+
+.cell-empty {
+  background: #0b1220;
+  color: #3f4a5e;
+}
+
+.cell-floor-a-top-left,
+.cell-floor-a-top-center,
+.cell-floor-a-top-right,
+.cell-floor-a-mid-left,
+.cell-floor-a-mid-center,
+.cell-floor-a-mid-right,
+.cell-floor-a-bottom-left,
+.cell-floor-a-bottom-center,
+.cell-floor-a-bottom-right {
+  background-size: cover;
+  background-position: center;
+  color: rgba(226, 232, 240, 0.85);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
+}
+
+.cell-floor-a-top-left {
+  background-image: url("./images/tiles/floor_a/top_left.png");
+}
+
+.cell-floor-a-top-center {
+  background-image: url("./images/tiles/floor_a/top_center.png");
+}
+
+.cell-floor-a-top-right {
+  background-image: url("./images/tiles/floor_a/top_right.png");
+}
+
+.cell-floor-a-mid-left {
+  background-image: url("./images/tiles/floor_a/mid_left.png");
+}
+
+.cell-floor-a-mid-center {
+  background-image: url("./images/tiles/floor_a/mid_center.png");
+}
+
+.cell-floor-a-mid-right {
+  background-image: url("./images/tiles/floor_a/mid_right.png");
+}
+
+.cell-floor-a-bottom-left {
+  background-image: url("./images/tiles/floor_a/bottom_left.png");
+}
+
+.cell-floor-a-bottom-center {
+  background-image: url("./images/tiles/floor_a/bottom_center.png");
+}
+
+.cell-floor-a-bottom-right {
+  background-image: url("./images/tiles/floor_a/bottom_right.png");
+}
+
+.cell-water-a-left,
+.cell-water-a-mid,
+.cell-water-a-right {
+  background-size: cover;
+  background-position: center;
+  color: #dbeafe;
+}
+
+.cell-water-a-left {
+  background-image: url("./images/tiles/water_a/left_0.png");
+}
+
+.cell-water-a-mid {
+  background-image: url("./images/tiles/water_a/mid_0.png");
+}
+
+.cell-water-a-right {
+  background-image: url("./images/tiles/water_a/right_0.png");
+}
+
+.cell-wall-a-top-left {
+  background-image: url("./images/tiles/wall_a/top_left.png");
+  background-size: cover;
+  background-position: center;
+}
+
+.cell-wall-a-top-center {
+  background-image: url("./images/tiles/wall_a/top_center.png");
+  background-size: cover;
+  background-position: center;
+}
+
+.cell-wall-a-top-right {
+  background-image: url("./images/tiles/wall_a/top_right.png");
+  background-size: cover;
+  background-position: center;
+}
+
+.cell-wall-a-mid-left {
+  background-image: url("./images/tiles/wall_a/mid_left.png");
+  background-size: cover;
+  background-position: center;
+}
+
+.cell-wall-a-mid-center-a {
+  background-image: url("./images/tiles/wall_a/mid_center_a.png");
+  background-size: cover;
+  background-position: center;
+}
+
+.cell-wall-a-mid-center-b {
+  background-image: url("./images/tiles/wall_a/mid_center_b.png");
+  background-size: cover;
+  background-position: center;
+}
+
+.cell-wall-a-mid-right {
+  background-image: url("./images/tiles/wall_a/mid_right.png");
+  background-size: cover;
+  background-position: center;
+}
+
+.cell-wall-a-bottom-left {
+  background-image: url("./images/tiles/wall_a/bottom_left.png");
+  background-size: cover;
+  background-position: center;
+}
+
+.cell-wall-a-bottom-center {
+  background-image: url("./images/tiles/wall_a/bottom_center.png");
+  background-size: cover;
+  background-position: center;
+}
+
+.cell-wall-a-bottom-right {
+  background-image: url("./images/tiles/wall_a/bottom_right.png");
+  background-size: cover;
+  background-position: center;
+}
+
+.cell-ground {
+  background-color: #334155;
+  background-image: url("./images/tiles/wall_tile.png");
+  background-size: cover;
+  background-position: center;
+  color: rgba(226, 232, 240, 0.85);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
+}
+
+.cell-ground-top {
+  background-image: url("./images/tiles/floor_tile.png");
+}
+
+.cell-ground-wall {
+  background-image: url("./images/tiles/wall_tile.png");
+}
+
+.cell-ground-moss {
+  background-image: url("./images/tiles/thumbs/ground_moss.png");
+  background-size: cover;
+  background-position: center;
+  color: rgba(226, 232, 240, 0.85);
+}
+
+.cell-ground-crack {
+  background-image: url("./images/tiles/thumbs/ground_crack.png");
+  background-size: cover;
+  background-position: center;
+  color: rgba(226, 232, 240, 0.85);
+}
+
+.cell-bridge {
+  background-image: url("./images/tiles/thumbs/bridge.png");
+  background-size: cover;
+  background-position: center;
+  color: #fef3c7;
+}
+
+.cell-bridge-a {
+  background-image: url("./images/tiles/bridge_a/up.png");
+  background-size: cover;
+  background-position: center;
+  color: #fef3c7;
+}
+
+.cell-bridge-b {
+  background-image: url("./images/tiles/bridge_a/down.png");
+  background-size: cover;
+  background-position: center;
+  color: #fef3c7;
+}
+
+.cell-spike {
+  background-image: url("./images/tiles/hazards/spike.png");
+  background-size: cover;
+  background-position: center;
+  color: #fef3c7;
+}
+
+.cell-lava {
+  background-image: url("./images/tiles/hazards/lava_0.png");
+  background-size: cover;
+  background-position: center;
+  color: #fecaca;
+}
+
+.cell-coin {
+  background-image: url("./images/items/coin/coin_0.png");
+  background-size: cover;
+  background-position: center;
+  color: #fef08a;
+}
+
+.cell-enemy {
+  background: #991b1b;
+  color: #fecaca;
+}
+
+.cell-door {
+  background-image: url("./images/tiles/thumbs/door.png");
+  background-size: cover;
+  background-position: center;
+  color: #f8e7cd;
+}
+
+.cell-chest {
+  background-image:
+    linear-gradient(180deg, #b9914f 0 22%, transparent 22%),
+    linear-gradient(90deg, transparent 0 16%, #e2bf78 16% 23%, transparent 23% 77%, #e2bf78 77% 84%, transparent 84%),
+    linear-gradient(180deg, #6c4625 0 45%, #4a2f19 46% 100%);
+  background-size: cover;
+  background-position: center;
+  color: #fef3c7;
+}
+
+.cell-chest-open {
+  background-image:
+    linear-gradient(180deg, transparent 0 34%, #1f140b 35% 60%, transparent 60%),
+    linear-gradient(180deg, #a97d41 0 16%, #4e321c 17% 36%, #6c4625 37% 100%);
+  background-size: cover;
+  background-position: center;
+  color: #fef3c7;
+}
+
+.cell-key {
+  background-image: url("./images/ui/key.png");
+  background-size: cover;
+  background-position: center;
+  color: #fef08a;
+}
+
+.cell-switch {
+  background-image: url("./images/tiles/thumbs/switch.png");
+  background-size: cover;
+  background-position: center;
+  color: #e2e8f0;
+}
+
+.cell-torch {
+  background-image: url("./images/tiles/thumbs/torch.png");
+  background-size: cover;
+  background-position: center;
+  color: #fde68a;
+}
+
+.cell-chain {
+  background-image: url("./images/tiles/thumbs/chain.png");
+  background-size: cover;
+  background-position: center;
+  color: #e2e8f0;
+}
+
+.cell-web {
+  background-image: url("./images/tiles/thumbs/web.png");
+  background-size: cover;
+  background-position: center;
+  color: #e2e8f0;
+}
+
+.cell-rune {
+  background-image: url("./images/tiles/thumbs/rune.png");
+  background-size: cover;
+  background-position: center;
+  color: #fecaca;
+}
+
+.cell-barrel {
+  background-image: url("./images/tiles/thumbs/barrel.png");
+  background-size: cover;
+  background-position: center;
+  color: #fcd34d;
+}
+
+.cell-crate {
+  background-image: url("./images/tiles/thumbs/crate.png");
+  background-size: cover;
+  background-position: center;
+  color: #fef3c7;
+}
+
+.cell-vase {
+  background-image: url("./images/tiles/thumbs/vase.png");
+  background-size: cover;
+  background-position: center;
+  color: #ffedd5;
+}
+
+.cell-mushroom {
+  background-image: url("./images/tiles/thumbs/mushroom.png");
+  background-size: cover;
+  background-position: center;
+  color: #fecdd3;
+}
+
+.cell-window {
+  background-image: url("./images/tiles/thumbs/window.png");
+  background-size: cover;
+  background-position: center;
+  color: #dbeafe;
+}
+
+.cell-spawn {
+  background: #0369a1;
+  color: #bae6fd;
+}
+
+.cell-goal {
+  background: #0f766e;
+  color: #ccfbf1;
+}
+
+.io textarea {
+  width: 100%;
+  min-height: 150px;
+  margin-top: 8px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+}
+
+@media (max-width: 760px) {
+  .controls {
+    grid-template-columns: 1fr;
+  }
+
+  .controls .row {
+    flex-wrap: wrap;
+  }
+
+  .controls .row button {
+    flex: 1 1 180px;
+  }
+
+  .io .row {
+    flex-wrap: wrap;
+  }
+
+  .io .row button {
+    flex: 1 1 180px;
+  }
+
+  .cell {
+    width: 20px;
+    height: 20px;
+    font-size: 9px;
+    line-height: 20px;
+  }
+}

@@ -1,0 +1,212 @@
+.pixel-platformer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 8, 14, 0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 230;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.pixel-platformer-overlay.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.pixel-platformer-panel {
+  width: min(96vw, 1060px);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 5px;
+  background: #090d14;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+  padding: 14px;
+  transform: translateY(8px) scale(0.985);
+  opacity: 0;
+  transition: transform 0.22s ease, opacity 0.22s ease;
+  font-family: "Press Start 2P", "Space Grotesk", sans-serif;
+}
+
+.pixel-platformer-overlay.is-open .pixel-platformer-panel {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+.pixel-platformer-header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  align-items: start;
+}
+
+.pixel-platformer-title {
+  font-size: 13px;
+  color: #f8fafc;
+  line-height: 1.5;
+}
+
+.pixel-platformer-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 10px;
+  color: #9aa8c0;
+  line-height: 1.7;
+}
+
+.pixel-platformer-stats strong {
+  color: #f8fafc;
+}
+
+.pixel-platformer-key-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 6px;
+  border: 1px solid rgba(250, 204, 21, 0.25);
+  border-radius: 999px;
+  background: rgba(113, 63, 18, 0.2);
+  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.pixel-platformer-key-chip.has-key {
+  border-color: rgba(250, 204, 21, 0.72);
+  background: rgba(245, 158, 11, 0.24);
+  color: #fde68a;
+}
+
+.pixel-platformer-key-icon {
+  width: 14px;
+  height: 14px;
+  display: inline-block;
+  background-image: url("./images/ui/key.png");
+  background-size: cover;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  filter: grayscale(1) brightness(0.8);
+}
+
+.pixel-platformer-key-chip.has-key .pixel-platformer-key-icon {
+  filter: none;
+}
+
+.pixel-platformer-hearts {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  vertical-align: middle;
+}
+
+.pixel-platformer-heart {
+  width: 16px;
+  height: 16px;
+  display: inline-block;
+  background-image: url("./images/ui/heart_empty.png");
+  background-size: cover;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+
+.pixel-platformer-heart.is-full {
+  background-image: url("./images/ui/heart_full.png");
+}
+
+.pixel-platformer-close {
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.06);
+  color: #f8fafc;
+  border-radius: 5px;
+  padding: 7px 10px;
+  cursor: pointer;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 13px;
+}
+
+.pixel-platformer-canvas {
+  margin-top: 10px;
+  width: 100%;
+  height: auto;
+  border-radius: 5px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: #05080e;
+  image-rendering: pixelated;
+}
+
+.pixel-platformer-hint {
+  margin-top: 10px;
+  font-size: 10px;
+  color: #a7b2c7;
+  line-height: 1.8;
+}
+
+.pixel-platformer-status {
+  margin-top: 10px;
+  border: 1px dashed rgba(255,255,255,0.22);
+  border-radius: 5px;
+  background: rgba(0,0,0,0.24);
+  padding: 12px;
+  display: none;
+  gap: 8px;
+  font-size: 10px;
+  color: #ced7e6;
+}
+
+.pixel-platformer-status.is-visible {
+  display: grid;
+}
+
+.pixel-platformer-status-title {
+  font-size: 11px;
+  color: #f8fafc;
+}
+
+.pixel-platformer-status-sub {
+  color: #a7b2c7;
+  line-height: 1.7;
+}
+
+.pixel-platformer-status button {
+  width: fit-content;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.06);
+  color: #f8fafc;
+  border-radius: 5px;
+  padding: 7px 10px;
+  cursor: pointer;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 13px;
+}
+
+.pixel-platformer-rank {
+  margin-top: 2px;
+  display: none;
+  gap: 6px;
+}
+
+.pixel-platformer-rank.is-visible {
+  display: grid;
+}
+
+.pixel-platformer-rank strong {
+  color: #f8fafc;
+  font-size: 10px;
+}
+
+.pixel-platformer-rank ol {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 4px;
+}
+
+@media (max-width: 860px) {
+  .pixel-platformer-header {
+    grid-template-columns: 1fr;
+  }
+
+  .pixel-platformer-close {
+    justify-self: end;
+  }
+}

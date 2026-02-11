@@ -12,6 +12,7 @@
         <div class="snake-score">
           <span>Pontos: <strong data-score>0</strong></span>
           <span>Recorde: <strong data-high>0</strong></span>
+          <span>Velocidade: <strong data-speed>1x</strong></span>
         </div>
         <button type="button" class="snake-close" aria-label="Fechar">Fechar</button>
       </div>
@@ -24,6 +25,7 @@
     if (active) return;
     active = true;
     document.body.appendChild(overlay);
+    document.body.dataset.arcade = "snake";
     document.body.style.overflow = "hidden";
     requestAnimationFrame(() => overlay.classList.add("is-open"));
     initAudio();
@@ -37,6 +39,7 @@
     setTimeout(() => {
       if (overlay.parentNode) overlay.remove();
       document.body.style.overflow = "";
+      delete document.body.dataset.arcade;
       stopGame();
       stopBg();
     }, 250);
@@ -45,7 +48,8 @@
   const closeBtn = () => overlay.querySelector(".snake-close");
 
   let loopId = null;
-  let tick = 0;
+  let lastTime = 0;
+  let accTime = 0;
   let grid = 21;
   let snake = [{ x: 10, y: 10 }];
   let dir = { x: 1, y: 0 };
@@ -56,17 +60,29 @@
   let bgAudio = null;
   let collectAudio = null;
   let loopTimer = null;
+  const baseInterval = 170;
+  const maxSpeed = 5;
+  const pointsPerLevel = 15;
 
   const scoreEl = () => overlay.querySelector("[data-score]");
   const highEl = () => overlay.querySelector("[data-high]");
+  const speedEl = () => overlay.querySelector("[data-speed]");
   const loadHigh = () => Number(localStorage.getItem("snake_high_score") || 0);
   const saveHigh = value => localStorage.setItem("snake_high_score", String(value));
+
+  const getSpeed = () => Math.min(maxSpeed, Math.floor(score / pointsPerLevel) + 1);
+
+  const updateSpeedUI = () => {
+    const s = speedEl();
+    if (s) s.textContent = `${getSpeed()}x`;
+  };
 
   const updateScoreUI = () => {
     const s = scoreEl();
     const h = highEl();
     if (s) s.textContent = String(score);
     if (h) h.textContent = String(highScore);
+    updateSpeedUI();
   };
 
   const initAudio = () => {
@@ -127,7 +143,9 @@
   const startGame = () => {
     highScore = loadHigh();
     reset();
-    tick = 0;
+    lastTime = performance.now();
+    accTime = 0;
+    draw();
     loopId = requestAnimationFrame(loop);
   };
 
@@ -136,13 +154,20 @@
     loopId = null;
   };
 
-  const loop = () => {
+  const loop = now => {
     if (!active) return;
-    tick++;
-    if (tick % 8 === 0) {
+    const delta = now - lastTime;
+    lastTime = now;
+    accTime += delta;
+
+    const stepInterval = baseInterval / getSpeed();
+    let safety = 0;
+    while (accTime >= stepInterval && safety < 5) {
       step();
-      draw();
+      accTime -= stepInterval;
+      safety += 1;
     }
+    draw();
     loopId = requestAnimationFrame(loop);
   };
 
@@ -213,6 +238,7 @@
   };
 
   document.addEventListener("keydown", event => {
+    if (!active && document.body.dataset.arcade) return;
     if (active) {
       if (event.key === "Escape") {
         closeGame();
