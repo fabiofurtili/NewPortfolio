@@ -48,7 +48,7 @@ import { LEVELS } from "./levels.js";
           <span class="pixel-platformer-key-chip" data-key-chip><span class="pixel-platformer-key-icon" aria-hidden="true"></span>Chaves: <strong data-keys>0</strong></span>
           <span>Moedas: <strong data-coins>0</strong></span>
           <span>Pontos: <strong data-score>0</strong></span>
-          <span>Tempo: <strong data-time>0:00</strong></span>
+          <span>Tempo: <strong data-time>0:00.000</strong></span>
         </div>
         <button type="button" class="pixel-platformer-close" aria-label="Fechar">Fechar</button>
       </div>
@@ -174,6 +174,7 @@ import { LEVELS } from "./levels.js";
     },
     collectibles: {
       key: { image: new Image(), src: "assets/js/easter-eggs/pixel-platformer/images/ui/key.png", loaded: false },
+      life: { image: new Image(), src: "assets/js/easter-eggs/pixel-platformer/images/ui/heart_full.png", loaded: false },
       coin: [
         { image: new Image(), src: "assets/js/easter-eggs/pixel-platformer/images/items/coin/coin_0.png", loaded: false },
         { image: new Image(), src: "assets/js/easter-eggs/pixel-platformer/images/items/coin/coin_1.png", loaded: false },
@@ -379,6 +380,15 @@ import { LEVELS } from "./levels.js";
         tileSprites.collectibles.key.loaded = false;
       };
     }
+    if (!tileSprites.collectibles.life.image.src) {
+      tileSprites.collectibles.life.image.src = tileSprites.collectibles.life.src;
+      tileSprites.collectibles.life.image.onload = () => {
+        tileSprites.collectibles.life.loaded = true;
+      };
+      tileSprites.collectibles.life.image.onerror = () => {
+        tileSprites.collectibles.life.loaded = false;
+      };
+    }
     tileSprites.collectibles.coin.forEach(sprite => {
       if (sprite.image.src) return;
       sprite.image.src = sprite.src;
@@ -493,6 +503,7 @@ import { LEVELS } from "./levels.js";
     const spikes = [];
     const lavas = [];
     const coins = [];
+    const lives = [];
     const enemies = [];
     const doors = [];
     const chests = [];
@@ -597,6 +608,14 @@ import { LEVELS } from "./levels.js";
             collected: false,
             pulse: Math.random() * Math.PI * 2,
           });
+        } else if (cell === "V") {
+          lives.push({
+            x: x * TILE + TILE * 0.5,
+            y: y * TILE + TILE * 0.5,
+            r: TILE * 0.26,
+            collected: false,
+            pulse: Math.random() * Math.PI * 2,
+          });
         } else if (cell === "N") {
           checkpoints.push({
             x: x * TILE + 6,
@@ -659,6 +678,7 @@ import { LEVELS } from "./levels.js";
       spikes,
       lavas,
       coins,
+      lives,
       enemies,
       doors,
       chests,
@@ -705,7 +725,7 @@ import { LEVELS } from "./levels.js";
       chip.title = keyCount > 0 ? "Voce tem chave para abrir a porta" : "Sem chave";
     }
     if (s) s.textContent = String(game.score);
-    if (t) t.textContent = formatClock(game.levelTime);
+    if (t) t.textContent = formatClockMs(game.levelTime * 1000);
   };
 
   const showStatus = ({ title, sub, actionLabel, action, showRanking }) => {
@@ -776,19 +796,38 @@ import { LEVELS } from "./levels.js";
     const list = loadRanking();
     list.push({
       score: game.score,
-      time: Math.max(1, Math.round(game.totalTime)),
+      timeMs: Math.max(1, Math.round(game.totalTime * 1000)),
       at: Date.now(),
     });
     list.sort((a, b) => {
       if (b.score !== a.score) return b.score - a.score;
-      return a.time - b.time;
+      return a.timeMs - b.timeMs;
     });
     localStorage.setItem(rankStorageKey, JSON.stringify(list.slice(0, 5)));
   };
 
   const loadRanking = () => {
     try {
-      return JSON.parse(localStorage.getItem(rankStorageKey) || "[]");
+      const raw = JSON.parse(localStorage.getItem(rankStorageKey) || "[]");
+      if (!Array.isArray(raw)) return [];
+      return raw
+        .map(entry => {
+          if (!entry || typeof entry !== "object") return null;
+          const score = Number(entry.score) || 0;
+          let timeMs = Number(entry.timeMs);
+          if (!Number.isFinite(timeMs) || timeMs <= 0) {
+            const legacy = Number(entry.time) || 0;
+            // Compatibilidade: ranking antigo guardava "time" em segundos.
+            timeMs = legacy > 10000 ? Math.round(legacy) : Math.round(legacy * 1000);
+          }
+          if (!Number.isFinite(timeMs) || timeMs <= 0) return null;
+          return {
+            score,
+            timeMs,
+            at: Number(entry.at) || Date.now(),
+          };
+        })
+        .filter(Boolean);
     } catch {
       return [];
     }
@@ -807,16 +846,18 @@ import { LEVELS } from "./levels.js";
     }
     list.forEach((entry, idx) => {
       const li = document.createElement("li");
-      li.textContent = `${idx + 1}. ${entry.score} pts - ${formatClock(entry.time)}`;
+      li.textContent = `${idx + 1}. ${entry.score} pts - ${formatClockMs(entry.timeMs)}`;
       listNode.appendChild(li);
     });
   };
 
-  const formatClock = secs => {
-    const s = Math.max(0, Math.floor(secs));
-    const m = Math.floor(s / 60);
-    const r = s % 60;
-    return `${m}:${String(r).padStart(2, "0")}`;
+  const formatClockMs = totalMs => {
+    const ms = Math.max(0, Math.floor(totalMs));
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    const millis = ms % 1000;
+    return `${minutes}:${String(seconds).padStart(2, "0")}.${String(millis).padStart(3, "0")}`;
   };
 
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -1090,7 +1131,7 @@ import { LEVELS } from "./levels.js";
     saveRanking();
     showStatus({
       title: "Vitoria",
-      sub: `Pontuacao final ${game.score} em ${formatClock(game.totalTime)}.`,
+      sub: `Pontuacao final ${game.score} em ${formatClockMs(game.totalTime * 1000)}.`,
       actionLabel: "Jogar novamente",
       action: "restart-run",
       showRanking: true,
@@ -1211,6 +1252,27 @@ import { LEVELS } from "./levels.js";
       coin.collected = true;
       game.score += 45;
       game.coins += 1;
+    });
+  };
+
+  const updateLifePickups = () => {
+    const world = game.world;
+    const player = game.player;
+    if (!world || !player) return;
+    world.lives.forEach(heart => {
+      if (heart.collected) return;
+      const hit = rectOverlap(player, {
+        x: heart.x - heart.r,
+        y: heart.y - heart.r,
+        w: heart.r * 2,
+        h: heart.r * 2,
+      });
+      if (!hit) return;
+      heart.collected = true;
+      if (game.lives < MAX_LIVES) {
+        game.lives = Math.min(MAX_LIVES, game.lives + 1);
+        game.score += 80;
+      }
     });
   };
 
@@ -1342,7 +1404,14 @@ import { LEVELS } from "./levels.js";
     const player = game.player;
     if (!world || !player) return;
     for (const spike of world.spikes) {
-      if (rectOverlap(player, spike)) {
+      const sideInset = Math.max(4, spike.w * 0.18);
+      const spikeHitbox = {
+        x: spike.x + sideInset,
+        y: spike.y,
+        w: Math.max(2, spike.w - sideInset * 2),
+        h: spike.h,
+      };
+      if (rectOverlap(player, spikeHitbox)) {
         damagePlayer("spike");
         return;
       }
@@ -1581,6 +1650,7 @@ import { LEVELS } from "./levels.js";
     updateEnemies(dt);
     updateCheckpoints();
     updateCoins();
+    updateLifePickups();
     updateLooseKeys();
     updateDoors(dt);
     updateHazards();
@@ -1939,6 +2009,24 @@ import { LEVELS } from "./levels.js";
         ctx.fillRect(cx - coin.r + pulse, cy - coin.r + pulse, coin.r * 2, coin.r * 2);
         ctx.fillStyle = "#fef08a";
         ctx.fillRect(cx - coin.r * 0.5, cy - coin.r * 0.5, coin.r, coin.r);
+      }
+    });
+
+    world.lives.forEach(heart => {
+      if (heart.collected) return;
+      const hx = heart.x - cameraX;
+      const hy = heart.y - cameraY;
+      if (hx + heart.r < 0 || hx - heart.r > c.width || hy + heart.r < 0 || hy - heart.r > c.height) return;
+      heart.pulse += 0.05;
+      const wobble = Math.sin(heart.pulse) * 1.1;
+      const size = TILE * 0.92;
+      const dx = hx - size * 0.5;
+      const dy = hy - size * 0.5 + wobble;
+      if (tileSprites.collectibles.life.loaded) {
+        ctx.drawImage(tileSprites.collectibles.life.image, dx, dy, size, size);
+      } else {
+        ctx.fillStyle = "#ef4444";
+        ctx.fillRect(hx - heart.r, hy - heart.r, heart.r * 2, heart.r * 2);
       }
     });
 

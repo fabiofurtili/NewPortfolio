@@ -368,6 +368,10 @@ button.is-loading::after {
   background-image: url("./images/items/coin/coin_0.png");
 }
 
+.thumb-life {
+  background-image: url("./images/ui/heart_full.png");
+}
+
 .thumb-checkpoint {
   background-image: url("./images/tiles/checkpoint/checkpoint_inactive.png");
 }
@@ -628,6 +632,13 @@ button.is-loading::after {
   background-size: cover;
   background-position: center;
   color: #fef08a;
+}
+
+.cell-life {
+  background-image: url("./images/ui/heart_full.png");
+  background-size: cover;
+  background-position: center;
+  color: #fecaca;
 }
 
 .cell-checkpoint {
