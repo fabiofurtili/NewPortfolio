@@ -1,0 +1,111 @@
+{
+  "frameWidth": 32,
+  "frameHeight": 32,
+  "animations": {
+    "idle": {
+      "row": 0,
+      "from": 0,
+      "to": 3,
+      "fps": 6,
+      "loop": true
+    },
+    "walk": {
+      "row": 1,
+      "from": 0,
+      "to": 5,
+      "fps": 10,
+      "loop": true
+    },
+    "run": {
+      "row": 2,
+      "from": 0,
+      "to": 5,
+      "fps": 14,
+      "loop": true
+    },
+    "jump": {
+      "row": 3,
+      "from": 0,
+      "to": 7,
+      "fps": 10,
+      "loop": false
+    },
+    "crouch": {
+      "row": 2,
+      "from": 0,
+      "to": 5,
+      "fps": 8,
+      "loop": true
+    },
+    "landing": {
+      "row": 3,
+      "from": 6,
+      "to": 7,
+      "fps": 12,
+      "loop": false
+    },
+    "hurt": {
+      "row": 5,
+      "from": 0,
+      "to": 3,
+      "fps": 10,
+      "loop": false
+    },
+    "attack1": {
+      "row": 6,
+      "from": 0,
+      "to": 3,
+      "fps": 10,
+      "loop": false
+    },
+    "attack2": {
+      "row": 7,
+      "from": 0,
+      "to": 5,
+      "fps": 12,
+      "loop": false
+    },
+    "throw": {
+      "row": 8,
+      "from": 0,
+      "to": 3,
+      "fps": 10,
+      "loop": false
+    },
+    "climb": {
+      "row": 9,
+      "from": 0,
+      "to": 3,
+      "fps": 8,
+      "loop": true
+    },
+    "death": {
+      "row": 10,
+      "from": 0,
+      "to": 7,
+      "fps": 10,
+      "loop": false
+    },
+    "walkAttack": {
+      "row": 11,
+      "from": 0,
+      "to": 5,
+      "fps": 10,
+      "loop": true
+    },
+    "doubleJumpDust": {
+      "row": 12,
+      "from": 0,
+      "to": 4,
+      "fps": 12,
+      "loop": false
+    },
+    "moveDust": {
+      "row": 13,
+      "from": 0,
+      "to": 5,
+      "fps": 12,
+      "loop": false
+    }
+  }
+}

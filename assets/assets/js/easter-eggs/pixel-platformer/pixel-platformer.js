@@ -3,7 +3,6 @@ import { LEVELS } from "./levels.js";
 (() => {
   const sequence = ["ArrowUp", "ArrowUp", "ArrowUp", "ArrowDown"];
   const rankStorageKey = "pixel_platformer_rank";
-  const levelsStorageKey = "pixel_platformer_levels_v1";
 
   const TILE = 32;
   const FIXED_DT = 1 / 60;
@@ -43,7 +42,7 @@ import { LEVELS } from "./levels.js";
       <div class="pixel-platformer-header">
         <strong class="pixel-platformer-title">Pixel Rush</strong>
         <div class="pixel-platformer-stats">
-          <span>Fase: <strong data-level>1</strong>/<strong data-level-total>1</strong></span>
+          <span>Fase: <strong data-level>1</strong>/2</span>
           <span>Vidas: <strong data-lives></strong></span>
           <span class="pixel-platformer-key-chip" data-key-chip><span class="pixel-platformer-key-icon" aria-hidden="true"></span>Chaves: <strong data-keys>0</strong></span>
           <span>Moedas: <strong data-coins>0</strong></span>
@@ -69,7 +68,6 @@ import { LEVELS } from "./levels.js";
   const canvas = () => overlay.querySelector(".pixel-platformer-canvas");
   const closeBtn = () => overlay.querySelector(".pixel-platformer-close");
   const levelEl = () => overlay.querySelector("[data-level]");
-  const levelTotalEl = () => overlay.querySelector("[data-level-total]");
   const livesEl = () => overlay.querySelector("[data-lives]");
   const coinsEl = () => overlay.querySelector("[data-coins]");
   const keysEl = () => overlay.querySelector("[data-keys]");
@@ -183,16 +181,11 @@ import { LEVELS } from "./levels.js";
         { image: new Image(), src: "assets/js/easter-eggs/pixel-platformer/images/items/coin/coin_5.png", loaded: false },
       ],
     },
-    checkpoints: {
-      inactive: { image: new Image(), src: "assets/js/easter-eggs/pixel-platformer/images/tiles/checkpoint/checkpoint_inactive.png", loaded: false },
-      active: { image: new Image(), src: "assets/js/easter-eggs/pixel-platformer/images/tiles/checkpoint/checkpoint_active.png", loaded: false },
-    },
   };
 
   const game = {
     mode: "idle",
     started: false,
-    levels: [],
     levelIndex: 0,
     lives: MAX_LIVES,
     score: 0,
@@ -205,32 +198,8 @@ import { LEVELS } from "./levels.js";
     cameraY: 0,
     effects: [],
     waterSplashes: [],
-    checkpoint: null,
     deathReason: "",
     finalDeath: false,
-  };
-
-  const isMapArray = value =>
-    Array.isArray(value) && value.length > 0 && value.every(row => typeof row === "string");
-
-  const isLevelObject = value =>
-    Boolean(value) &&
-    typeof value === "object" &&
-    typeof value.name === "string" &&
-    Number.isFinite(Number(value.timeLimit)) &&
-    isMapArray(value.map);
-
-  const getRuntimeLevels = () => {
-    try {
-      const raw = localStorage.getItem(levelsStorageKey);
-      if (!raw) return LEVELS;
-      const parsed = JSON.parse(raw);
-      if (!Array.isArray(parsed)) return LEVELS;
-      const valid = parsed.filter(isLevelObject);
-      return valid.length ? valid : LEVELS;
-    } catch {
-      return LEVELS;
-    }
   };
 
   const openGame = () => {
@@ -389,16 +358,6 @@ import { LEVELS } from "./levels.js";
         sprite.loaded = false;
       };
     });
-    Object.values(tileSprites.checkpoints).forEach(sprite => {
-      if (sprite.image.src) return;
-      sprite.image.src = sprite.src;
-      sprite.image.onload = () => {
-        sprite.loaded = true;
-      };
-      sprite.image.onerror = () => {
-        sprite.loaded = false;
-      };
-    });
   };
 
   const closeGame = () => {
@@ -419,7 +378,6 @@ import { LEVELS } from "./levels.js";
   };
 
   const startRun = () => {
-    game.levels = getRuntimeLevels();
     game.levelIndex = 0;
     game.lives = MAX_LIVES;
     game.score = 0;
@@ -436,8 +394,7 @@ import { LEVELS } from "./levels.js";
   };
 
   const loadLevel = index => {
-    const def = game.levels[index];
-    if (!def) return;
+    const def = LEVELS[index];
     const world = parseLevel(def);
     game.levelIndex = index;
     game.world = world;
@@ -474,7 +431,6 @@ import { LEVELS } from "./levels.js";
     game.cameraY = 0;
     game.effects = [];
     game.waterSplashes = [];
-    game.checkpoint = { x: world.spawn.x, y: world.spawn.y };
     updateCamera();
     hideStatus();
     updateHud();
@@ -485,7 +441,10 @@ import { LEVELS } from "./levels.js";
     const height = rows.length;
     const width = rows.reduce((m, row) => Math.max(m, row.length), 0);
     const solids = new Set();
+    const solidMoss = new Set();
+    const solidCrack = new Set();
     const solidBridge = new Set();
+    const solidCrate = new Set();
     const bridgeTiles = new Map();
     const floorATiles = new Map();
     const wallATiles = new Map();
@@ -498,7 +457,7 @@ import { LEVELS } from "./levels.js";
     const chests = [];
     const looseKeys = [];
     const switches = [];
-    const checkpoints = [];
+    const decors = [];
     let spawn = { x: TILE * 1.2, y: TILE * 10 };
     let goal = { x: TILE * 2, y: TILE * 2, w: TILE * 0.9, h: TILE * 1.4, progress: 0, unlocking: false, completed: false };
 
@@ -509,17 +468,23 @@ import { LEVELS } from "./levels.js";
         const key = `${x},${y}`;
         if (
           cell === "#" ||
+          cell === "%" ||
+          cell === "@" ||
           cell === "=" ||
           cell === "(" ||
           cell === ")" ||
+          cell === "X" ||
           "123456789".includes(cell) ||
           "abcdefghij".includes(cell)
         ) {
           solids.add(key);
+          if (cell === "%") solidMoss.add(key);
+          if (cell === "@") solidCrack.add(key);
           if (cell === "=" || cell === "(" || cell === ")") {
             solidBridge.add(key);
             bridgeTiles.set(key, cell === "(" ? "up" : cell === ")" ? "down" : "mid");
           }
+          if (cell === "X") solidCrate.add(key);
           if ("123456789".includes(cell)) floorATiles.set(key, cell);
           if ("abcdefghij".includes(cell)) wallATiles.set(key, cell);
         } else if (cell === "^") {
@@ -597,16 +562,6 @@ import { LEVELS } from "./levels.js";
             collected: false,
             pulse: Math.random() * Math.PI * 2,
           });
-        } else if (cell === "N") {
-          checkpoints.push({
-            x: x * TILE + 6,
-            y: y * TILE + 2,
-            w: TILE - 12,
-            h: TILE - 4,
-            respawnX: x * TILE + 4,
-            respawnY: y * TILE - 2,
-            active: false,
-          });
         } else if (cell === "S") {
           spawn = { x: x * TILE + 4, y: y * TILE - 2 };
         } else if (cell === "G") {
@@ -635,6 +590,14 @@ import { LEVELS } from "./levels.js";
             animElapsed: 0,
             attackCooldown: 0,
           });
+        } else if ("TOHVWMRI".includes(cell)) {
+          decors.push({
+            type: cell,
+            x: x * TILE,
+            y: y * TILE,
+            w: TILE,
+            h: TILE,
+          });
         }
       }
     }
@@ -651,7 +614,10 @@ import { LEVELS } from "./levels.js";
       pixelWidth: width * TILE,
       pixelHeight: height * TILE,
       solids,
+      solidMoss,
+      solidCrack,
       solidBridge,
+      solidCrate,
       bridgeTiles,
       floorATiles,
       wallATiles,
@@ -664,7 +630,7 @@ import { LEVELS } from "./levels.js";
       chests,
       looseKeys,
       switches,
-      checkpoints,
+      decors,
       goal,
       spawn,
     };
@@ -681,14 +647,12 @@ import { LEVELS } from "./levels.js";
 
   const updateHud = () => {
     const l = levelEl();
-    const lt = levelTotalEl();
     const lv = livesEl();
     const c = coinsEl();
     const k = keysEl();
     const s = scoreEl();
     const t = timeEl();
     if (l) l.textContent = String(game.levelIndex + 1);
-    if (lt) lt.textContent = String(Math.max(1, game.levels.length));
     if (lv) {
       const hearts = [];
       for (let i = 0; i < MAX_LIVES; i += 1) {
@@ -748,7 +712,7 @@ import { LEVELS } from "./levels.js";
       const next = game.levelIndex + 1;
       loadLevel(next);
       showStatus({
-        title: game.levels[next].name,
+        title: LEVELS[next].name,
         sub: "Nova fase carregada. Inicie com esquerda, direita ou pulo.",
         actionLabel: "Iniciar",
         action: "start-level",
@@ -759,7 +723,7 @@ import { LEVELS } from "./levels.js";
     if (actionType === "restart-level") {
       loadLevel(game.levelIndex);
       showStatus({
-        title: game.levels[game.levelIndex].name,
+        title: LEVELS[game.levelIndex].name,
         sub: "Fase reiniciada.",
         actionLabel: "Iniciar",
         action: "start-level",
@@ -1037,11 +1001,10 @@ import { LEVELS } from "./levels.js";
     const world = game.world;
     const player = game.player;
     if (!world || !player) return;
-    const respawn = game.checkpoint || world.spawn;
-    player.x = respawn.x;
-    player.y = respawn.y;
-    player.prevX = respawn.x;
-    player.prevY = respawn.y;
+    player.x = world.spawn.x;
+    player.y = world.spawn.y;
+    player.prevX = world.spawn.x;
+    player.prevY = world.spawn.y;
     player.vx = 0;
     player.vy = 0;
     player.invuln = 1.1;
@@ -1074,7 +1037,7 @@ import { LEVELS } from "./levels.js";
   const finishLevel = () => {
     const timeBonus = Math.floor(game.levelTime) * 12;
     game.score += 250 + timeBonus;
-    if (game.levelIndex < game.levels.length - 1) {
+    if (game.levelIndex < LEVELS.length - 1) {
       game.mode = "level-clear";
       showStatus({
         title: "Fase concluida",
@@ -1162,22 +1125,19 @@ import { LEVELS } from "./levels.js";
       }
 
       if (!rectOverlap(player, enemy)) return;
+      const prevCenterX = (player.prevX ?? player.x) + player.w * 0.5;
+      const playerCenterX = player.x + player.w * 0.5;
+      const centerX = (prevCenterX + playerCenterX) * 0.5;
       const prevBottom = (player.prevY ?? player.y) + player.h;
-      const playerBottom = player.y + player.h;
-      const enemyTop = enemy.y;
-      const enemyUpperBand = enemy.y + enemy.h * 0.48;
-      const overlapX =
-        Math.min(player.x + player.w, enemy.x + enemy.w) -
-        Math.max(player.x, enemy.x);
-      const minOverlapForStomp = Math.max(3, Math.min(player.w, enemy.w) * 0.18);
-      const horizontalAligned = overlapX >= minOverlapForStomp;
-      const descending = player.vy > 18;
-      const crossedEnemyTop = prevBottom <= enemyTop + 8 && playerBottom >= enemyTop + 2;
-      const landedOnUpperPart = playerBottom <= enemyUpperBand + 6;
+      const cameFromAbove = prevBottom <= enemy.y + enemy.h * 0.7;
+      const descending = player.vy > 35;
+      const centerAbove = player.y + player.h * 0.5 <= enemy.y + enemy.h * 0.72;
+      const horizontalAligned = centerX >= enemy.x - 4 && centerX <= enemy.x + enemy.w + 4;
       const stomp =
         descending &&
-        horizontalAligned &&
-        (crossedEnemyTop || landedOnUpperPart);
+        cameFromAbove &&
+        centerAbove &&
+        horizontalAligned;
       if (stomp) {
         enemy.dead = true;
         enemy.state = "death";
@@ -1211,22 +1171,6 @@ import { LEVELS } from "./levels.js";
       coin.collected = true;
       game.score += 45;
       game.coins += 1;
-    });
-  };
-
-  const updateCheckpoints = () => {
-    const world = game.world;
-    const player = game.player;
-    if (!world || !player || !world.checkpoints.length) return;
-    world.checkpoints.forEach(cp => {
-      if (!rectOverlap(player, cp)) return;
-      if (cp.active) return;
-      world.checkpoints.forEach(item => {
-        item.active = false;
-      });
-      cp.active = true;
-      game.checkpoint = { x: cp.respawnX, y: cp.respawnY };
-      game.score += 20;
     });
   };
 
@@ -1579,7 +1523,6 @@ import { LEVELS } from "./levels.js";
     }
 
     updateEnemies(dt);
-    updateCheckpoints();
     updateCoins();
     updateLooseKeys();
     updateDoors(dt);
@@ -1736,7 +1679,38 @@ import { LEVELS } from "./levels.js";
           }
           continue;
         }
+        if (world.solidCrate.has(key)) {
+          ctx.fillStyle = "#7c5a3b";
+          ctx.fillRect(px, py, TILE, TILE);
+          ctx.fillStyle = "#4a2f1f";
+          ctx.fillRect(px + 2, py + 2, TILE - 4, TILE - 4);
+          ctx.fillStyle = "#9f7a57";
+          ctx.fillRect(px + 4, py + 4, TILE - 8, 3);
+          continue;
+        }
         const isSurface = !world.solids.has(`${x},${y - 1}`);
+        if (world.solidMoss.has(key)) {
+          ctx.fillStyle = "#355449";
+          ctx.fillRect(px, py, TILE, TILE);
+          ctx.fillStyle = "#3f7a54";
+          ctx.fillRect(px + 1, py + 1, TILE - 2, 6);
+          ctx.fillStyle = "#1f2937";
+          ctx.fillRect(px, py + TILE - 6, TILE, 6);
+          continue;
+        }
+        if (world.solidCrack.has(key)) {
+          ctx.fillStyle = "#3f4f60";
+          ctx.fillRect(px, py, TILE, TILE);
+          ctx.strokeStyle = "#0f172a";
+          ctx.beginPath();
+          ctx.moveTo(px + 3, py + 6);
+          ctx.lineTo(px + 15, py + 12);
+          ctx.lineTo(px + 10, py + 22);
+          ctx.moveTo(px + 20, py + 5);
+          ctx.lineTo(px + 24, py + 18);
+          ctx.stroke();
+          continue;
+        }
         if (isSurface && tileSprites.loadedFloor) {
           ctx.drawImage(tileSprites.floor, px, py, TILE, TILE);
         } else if (!isSurface && tileSprites.loadedWall) {
@@ -1767,6 +1741,64 @@ import { LEVELS } from "./levels.js";
       }
     });
 
+    world.decors.forEach(item => {
+      const dx = item.x - cameraX;
+      const dy = item.y - cameraY;
+      if (dx + item.w < 0 || dx > c.width || dy + item.h < 0 || dy > c.height) return;
+      if (item.type === "T") {
+        const flicker = Math.sin(performance.now() * 0.02 + item.x) * 2;
+        ctx.fillStyle = "#7c2d12";
+        ctx.fillRect(dx + 14, dy + 10, 4, 16);
+        ctx.fillStyle = "#f59e0b";
+        ctx.fillRect(dx + 12, dy + 4 + flicker, 8, 8);
+        ctx.fillStyle = "#fde68a";
+        ctx.fillRect(dx + 14, dy + 6 + flicker, 4, 4);
+      } else if (item.type === "H") {
+        ctx.fillStyle = "#9ca3af";
+        for (let i = 0; i < 4; i += 1) {
+          ctx.fillRect(dx + 14, dy + i * 8, 4, 4);
+          ctx.fillRect(dx + 13, dy + i * 8 + 4, 6, 2);
+        }
+      } else if (item.type === "W") {
+        ctx.strokeStyle = "rgba(226,232,240,0.7)";
+        ctx.beginPath();
+        ctx.moveTo(dx + 2, dy + 2);
+        ctx.lineTo(dx + 30, dy + 30);
+        ctx.moveTo(dx + 30, dy + 2);
+        ctx.lineTo(dx + 2, dy + 30);
+        ctx.moveTo(dx + 16, dy + 0);
+        ctx.lineTo(dx + 16, dy + 32);
+        ctx.moveTo(dx + 0, dy + 16);
+        ctx.lineTo(dx + 32, dy + 16);
+        ctx.stroke();
+      } else if (item.type === "R") {
+        ctx.fillStyle = "#7f1d1d";
+        ctx.fillRect(dx + 8, dy + 2, 16, 26);
+        ctx.fillStyle = "#fca5a5";
+        ctx.fillRect(dx + 14, dy + 8, 4, 12);
+      } else if (item.type === "O") {
+        ctx.fillStyle = "#7c4a1d";
+        ctx.fillRect(dx + 7, dy + 5, 18, 22);
+        ctx.fillStyle = "#4a2e1a";
+        ctx.fillRect(dx + 8, dy + 8, 16, 3);
+      } else if (item.type === "V") {
+        ctx.fillStyle = "#b45309";
+        ctx.fillRect(dx + 12, dy + 6, 8, 3);
+        ctx.fillRect(dx + 9, dy + 9, 14, 17);
+      } else if (item.type === "M") {
+        ctx.fillStyle = "#166534";
+        ctx.fillRect(dx + 4, dy + 20, 24, 8);
+        ctx.fillStyle = "#ef4444";
+        ctx.fillRect(dx + 8, dy + 14, 6, 4);
+        ctx.fillRect(dx + 17, dy + 12, 7, 5);
+      } else if (item.type === "I") {
+        ctx.fillStyle = "#334155";
+        ctx.fillRect(dx + 5, dy + 4, 22, 24);
+        ctx.fillStyle = "#0f172a";
+        ctx.fillRect(dx + 8, dy + 7, 16, 18);
+      }
+    });
+
     world.switches.forEach(sw => {
       const sx = sw.x - cameraX;
       const sy = sw.y - cameraY;
@@ -1775,27 +1807,6 @@ import { LEVELS } from "./levels.js";
       ctx.fillRect(sx, sy, sw.w, sw.h);
       ctx.fillStyle = sw.activated ? "#22c55e" : "#94a3b8";
       ctx.fillRect(sx + 2, sy + 2, sw.w - 4, sw.h - 4);
-    });
-
-    world.checkpoints.forEach(cp => {
-      const cx = cp.x - cameraX;
-      const cy = cp.y - cameraY;
-      if (cx + cp.w < 0 || cx > c.width || cy + cp.h < 0 || cy > c.height) return;
-      const sprite = cp.active ? tileSprites.checkpoints.active : tileSprites.checkpoints.inactive;
-      if (sprite && sprite.loaded) {
-        ctx.drawImage(sprite.image, cx - 4, cy - 2, TILE, TILE);
-      } else {
-        ctx.fillStyle = cp.active ? "#22c55e" : "#64748b";
-        ctx.fillRect(cx + cp.w * 0.5 - 2, cy + 2, 4, cp.h - 4);
-        ctx.fillStyle = cp.active ? "#86efac" : "#cbd5e1";
-        ctx.fillRect(cx + cp.w * 0.5 + 2, cy + 4, 8, 6);
-      }
-      if (cp.active) {
-        ctx.globalAlpha = 0.22 + Math.sin(performance.now() / 170) * 0.08;
-        ctx.fillStyle = "#86efac";
-        ctx.fillRect(cx - 1, cy + cp.h - 7, cp.w + 2, 6);
-        ctx.globalAlpha = 1;
-      }
     });
 
     world.chests.forEach(chest => {
@@ -1958,7 +1969,7 @@ import { LEVELS } from "./levels.js";
         const dx = ex + enemy.w * 0.5 - dw * 0.5;
         const dy = ey + enemy.h - dh;
 
-        if (enemy.dir > 0) {
+        if (enemy.dir < 0) {
           ctx.save();
           ctx.translate(dx + dw, dy);
           ctx.scale(-1, 1);
@@ -1971,7 +1982,7 @@ import { LEVELS } from "./levels.js";
         ctx.fillStyle = enemy.state === "attack" ? "#fb7185" : "#ef4444";
         ctx.fillRect(ex, ey, enemy.w, enemy.h);
         ctx.fillStyle = "#0f172a";
-        if (enemy.dir < 0) {
+        if (enemy.dir > 0) {
           ctx.fillRect(ex + 14, ey + 7, 3, 3);
         } else {
           ctx.fillRect(ex + 5, ey + 7, 3, 3);

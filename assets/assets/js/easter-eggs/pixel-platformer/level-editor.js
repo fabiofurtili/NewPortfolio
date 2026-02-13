@@ -26,18 +26,28 @@ const tileDefs = [
   { key: "i", label: "ParedeA base meio", thumb: "thumb-wall-a-bottom-center" },
   { key: "j", label: "ParedeA base direita", thumb: "thumb-wall-a-bottom-right" },
   { key: "#", label: "Piso/Parede base", thumb: "thumb-ground" },
+  { key: "%", label: "Parede musgo", thumb: "thumb-ground-moss" },
+  { key: "@", label: "Parede rachada", thumb: "thumb-ground-crack" },
   { key: "=", label: "Ponte", thumb: "thumb-bridge" },
   { key: "(", label: "Ponte A (subida)", thumb: "thumb-bridge-a" },
   { key: ")", label: "Ponte B (descida)", thumb: "thumb-bridge-b" },
   { key: "^", label: "Espinho / Dano", thumb: "thumb-spike" },
   { key: "C", label: "Moeda", thumb: "thumb-coin" },
-  { key: "N", label: "Checkpoint", thumb: "thumb-checkpoint" },
   { key: "E", label: "Inimigo", thumb: "thumb-enemy" },
   { key: "D", label: "Porta trancada", thumb: "thumb-door" },
   { key: "B", label: "Bau com chave", thumb: "thumb-chest" },
   { key: "Y", label: "Bau aberto (vazio)", thumb: "thumb-chest-open" },
   { key: "K", label: "Chave", thumb: "thumb-key" },
   { key: "L", label: "Alavanca", thumb: "thumb-switch" },
+  { key: "T", label: "Tocha", thumb: "thumb-torch" },
+  { key: "H", label: "Corrente", thumb: "thumb-chain" },
+  { key: "W", label: "Teia", thumb: "thumb-web" },
+  { key: "R", label: "Runa/Bandeira", thumb: "thumb-rune" },
+  { key: "O", label: "Barril", thumb: "thumb-barrel" },
+  { key: "X", label: "Caixote", thumb: "thumb-crate" },
+  { key: "V", label: "Vaso", thumb: "thumb-vase" },
+  { key: "M", label: "Cogumelos", thumb: "thumb-mushroom" },
+  { key: "I", label: "Janela/Grade", thumb: "thumb-window" },
   { key: "S", label: "Spawn (unico)", thumb: "thumb-spawn" },
   { key: "G", label: "Goal (unico)", thumb: "thumb-goal" },
 ];
@@ -70,16 +80,26 @@ const classByTile = {
   "#": "cell-ground",
   "^": "cell-spike",
   C: "cell-coin",
-  N: "cell-checkpoint",
   E: "cell-enemy",
   D: "cell-door",
   B: "cell-chest",
   Y: "cell-chest-open",
   K: "cell-key",
   L: "cell-switch",
+  T: "cell-torch",
+  H: "cell-chain",
+  W: "cell-web",
+  R: "cell-rune",
+  O: "cell-barrel",
+  X: "cell-crate",
+  V: "cell-vase",
+  M: "cell-mushroom",
+  I: "cell-window",
   "=": "cell-bridge",
   "(": "cell-bridge-a",
   ")": "cell-bridge-b",
+  "%": "cell-ground-moss",
+  "@": "cell-ground-crack",
   S: "cell-spawn",
   G: "cell-goal",
 };
@@ -93,25 +113,16 @@ const heightEl = document.querySelector("#grid-height");
 const existingLevelEl = document.querySelector("#existing-level");
 const loadExistingLevelEl = document.querySelector("#load-existing-level");
 const statusEl = document.querySelector("#load-status");
+const outputEl = document.querySelector("#output");
+const inputEl = document.querySelector("#input");
+const chooseLevelsFileEl = document.querySelector("#choose-levels-file");
 const saveSelectedLevelEl = document.querySelector("#save-selected-level");
 const saveNewLevelEl = document.querySelector("#save-new-level");
-const deleteSelectedLevelEl = document.querySelector("#delete-selected-level");
-const moveSelectedLevelEl = document.querySelector("#move-selected-level");
-const moveTargetIndexEl = document.querySelector("#move-target-index");
-const resetLocalLevelsEl = document.querySelector("#reset-local-levels");
-const resizeGridEl = document.querySelector("#resize-grid");
-const clearGridEl = document.querySelector("#clear-grid");
 
 let selectedTile = "#";
 let mouseDown = false;
 let grid = [];
-let editorBusy = false;
-const LEVELS_STORAGE_KEY = "pixel_platformer_levels_v1";
-const defaultLevels = LEVELS.map(level => ({
-  name: level.name,
-  timeLimit: level.timeLimit,
-  map: [...level.map],
-}));
+let levelsFileHandle = null;
 
 const createGrid = (w, h) => {
   grid = Array.from({ length: h }, () => Array.from({ length: w }, () => "."));
@@ -244,40 +255,83 @@ const normalizeLevel = level => ({
   map: sanitizeRows(level.map).map(row => row.join("")),
 });
 
-const syncInMemoryLevels = levels => {
-  LEVELS.length = 0;
-  levels.forEach(level => LEVELS.push(normalizeLevel(level)));
-  populateExistingLevels();
-};
-
-const parseLevelsPayload = payload => {
-  if (!Array.isArray(payload)) return null;
+const parseLevelsModuleText = text => {
+  const match = text.match(/export\s+const\s+LEVELS\s*=\s*([\s\S]*?);?\s*$/);
+  if (!match) throw new Error("Estrutura de levels.js nao reconhecida.");
+  const payload = parseImportPayload(match[1]);
+  if (!Array.isArray(payload)) throw new Error("LEVELS precisa ser um array.");
   const invalidIndex = payload.findIndex(level => !isLevelObject(level));
-  if (invalidIndex !== -1) return null;
+  if (invalidIndex !== -1) {
+    throw new Error(`Fase invalida no arquivo (indice ${invalidIndex}).`);
+  }
   return payload.map(normalizeLevel);
 };
 
-const loadLocalLevels = () => {
-  try {
-    const raw = localStorage.getItem(LEVELS_STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = parseImportPayload(raw);
-    return parseLevelsPayload(parsed);
-  } catch {
-    return null;
+const levelsToModuleText = levels => `export const LEVELS = ${JSON.stringify(levels, null, 2)};\n`;
+
+const syncInMemoryLevels = levels => {
+  LEVELS.length = 0;
+  levels.forEach(level => LEVELS.push(level));
+  populateExistingLevels();
+};
+
+const ensureFileApiSupport = () => {
+  if (typeof window.showOpenFilePicker !== "function") {
+    throw new Error("Seu navegador nao suporta salvar direto em arquivo.");
   }
 };
 
-const saveLocalLevels = levels => {
-  localStorage.setItem(LEVELS_STORAGE_KEY, JSON.stringify(levels));
+const ensureFilePermission = async (handle, mode = "readwrite") => {
+  if (!handle) return false;
+  const opts = { mode };
+  const current = await handle.queryPermission(opts);
+  if (current === "granted") return true;
+  return (await handle.requestPermission(opts)) === "granted";
 };
 
-const getWorkingLevels = () => LEVELS.map(level => normalizeLevel(level));
+const chooseLevelsFile = async () => {
+  ensureFileApiSupport();
+  const [handle] = await window.showOpenFilePicker({
+    multiple: false,
+    types: [
+      {
+        description: "JavaScript",
+        accept: { "text/javascript": [".js"] },
+      },
+    ],
+  });
+  if (!handle) throw new Error("Nenhum arquivo selecionado.");
+  levelsFileHandle = handle;
+  return handle;
+};
+
+const getLevelsFileHandle = async () => {
+  if (!levelsFileHandle) {
+    await chooseLevelsFile();
+  }
+  const granted = await ensureFilePermission(levelsFileHandle, "readwrite");
+  if (!granted) throw new Error("Permissao negada para editar o arquivo.");
+  return levelsFileHandle;
+};
+
+const readLevelsFromFile = async () => {
+  const handle = await getLevelsFileHandle();
+  const file = await handle.getFile();
+  const text = await file.text();
+  return parseLevelsModuleText(text);
+};
+
+const writeLevelsToFile = async levels => {
+  const handle = await getLevelsFileHandle();
+  const writable = await handle.createWritable();
+  await writable.write(levelsToModuleText(levels));
+  await writable.close();
+};
 
 const saveAsNewLevel = async () => {
-  const levels = getWorkingLevels();
+  const levels = await readLevelsFromFile();
   levels.push(normalizeLevel(exportLevelObject()));
-  saveLocalLevels(levels);
+  await writeLevelsToFile(levels);
   syncInMemoryLevels(levels);
   existingLevelEl.value = String(levels.length - 1);
 };
@@ -287,60 +341,28 @@ const saveSelectedLevel = async () => {
   if (!Number.isInteger(index) || index < 0) {
     throw new Error("Selecione uma fase existente para sobrescrever.");
   }
-  const levels = getWorkingLevels();
+  const levels = await readLevelsFromFile();
   if (!levels[index]) {
-    throw new Error("Indice de fase invalido.");
+    throw new Error("Indice de fase invalido no arquivo.");
   }
   levels[index] = normalizeLevel(exportLevelObject());
-  saveLocalLevels(levels);
+  await writeLevelsToFile(levels);
   syncInMemoryLevels(levels);
   existingLevelEl.value = String(index);
 };
 
-const deleteSelectedLevel = async () => {
-  const index = Number(existingLevelEl.value);
-  if (!Number.isInteger(index) || index < 0) {
-    throw new Error("Selecione uma fase existente para excluir.");
+const resolveImportedLevel = payload => {
+  if (isMapArray(payload)) {
+    return { name: nameEl.value.trim() || "Fase Nova", timeLimit: Number(timeEl.value) || 90, map: payload };
   }
-  const levels = getWorkingLevels();
-  if (levels.length <= 1) {
-    throw new Error("Nao e possivel excluir a ultima fase.");
+  if (isLevelObject(payload)) {
+    return payload;
   }
-  if (!levels[index]) {
-    throw new Error("Indice de fase invalido.");
+  if (Array.isArray(payload)) {
+    const first = payload.find(isLevelObject);
+    if (first) return first;
   }
-  const removed = levels[index];
-  levels.splice(index, 1);
-  saveLocalLevels(levels);
-  syncInMemoryLevels(levels);
-  const nextIndex = Math.min(index, levels.length - 1);
-  existingLevelEl.value = String(nextIndex);
-  return removed?.name || `#${index + 1}`;
-};
-
-const moveSelectedLevel = async () => {
-  const fromIndex = Number(existingLevelEl.value);
-  if (!Number.isInteger(fromIndex) || fromIndex < 0) {
-    throw new Error("Selecione uma fase existente para mover.");
-  }
-  const rawTarget = Number(moveTargetIndexEl?.value);
-  if (!Number.isInteger(rawTarget)) {
-    throw new Error("Informe a posicao de destino (ex.: 4).");
-  }
-  const levels = getWorkingLevels();
-  if (!levels[fromIndex]) {
-    throw new Error("Indice de fase invalido.");
-  }
-  const toIndex = Math.max(0, Math.min(levels.length - 1, rawTarget - 1));
-  if (toIndex === fromIndex) {
-    return { moved: false, toDisplay: toIndex + 1 };
-  }
-  const [movedLevel] = levels.splice(fromIndex, 1);
-  levels.splice(toIndex, 0, movedLevel);
-  saveLocalLevels(levels);
-  syncInMemoryLevels(levels);
-  existingLevelEl.value = String(toIndex);
-  return { moved: true, toDisplay: toIndex + 1 };
+  throw new Error("Formato invalido");
 };
 
 const populateExistingLevels = () => {
@@ -389,49 +411,6 @@ const exportLevelObject = () => {
   return level;
 };
 
-const actionButtons = [
-  resizeGridEl,
-  clearGridEl,
-  loadExistingLevelEl,
-  saveSelectedLevelEl,
-  saveNewLevelEl,
-  deleteSelectedLevelEl,
-  moveSelectedLevelEl,
-  resetLocalLevelsEl,
-].filter(Boolean);
-
-const setButtonsDisabled = disabled => {
-  actionButtons.forEach(button => {
-    if (button.classList.contains("is-loading")) return;
-    button.disabled = disabled;
-  });
-};
-
-const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
-
-const withButtonLoading = async (button, loadingText, action) => {
-  if (!button || editorBusy) return;
-  editorBusy = true;
-  const originalLabel = button.textContent;
-  const startedAt = performance.now();
-  button.classList.add("is-loading");
-  button.disabled = true;
-  button.textContent = loadingText;
-  setButtonsDisabled(true);
-  try {
-    await action();
-  } finally {
-    const elapsed = performance.now() - startedAt;
-    if (elapsed < 260) {
-      await wait(260 - elapsed);
-    }
-    button.classList.remove("is-loading");
-    button.textContent = originalLabel;
-    editorBusy = false;
-    setButtonsDisabled(false);
-  }
-};
-
 paletteEl.addEventListener("click", event => {
   const btn = event.target.closest("[data-tile]");
   if (!btn) return;
@@ -457,120 +436,100 @@ window.addEventListener("mouseup", () => {
   mouseDown = false;
 });
 
-if (resizeGridEl) {
-  resizeGridEl.addEventListener("click", () => {
-    withButtonLoading(resizeGridEl, "Redimensionando...", async () => {
-      const w = Math.max(16, Math.min(120, Number(widthEl.value) || 52));
-      const h = Math.max(10, Math.min(40, Number(heightEl.value) || 18));
-      const next = Array.from({ length: h }, (_, y) =>
-        Array.from({ length: w }, (_, x) => (grid[y] && grid[y][x] ? grid[y][x] : "."))
-      );
-      grid = next;
-      ensureUnique("S");
-      ensureUnique("G");
-      renderGrid();
-    });
-  });
-}
+document.querySelector("#resize-grid").addEventListener("click", () => {
+  const w = Math.max(16, Math.min(120, Number(widthEl.value) || 52));
+  const h = Math.max(10, Math.min(40, Number(heightEl.value) || 18));
+  const next = Array.from({ length: h }, (_, y) =>
+    Array.from({ length: w }, (_, x) => (grid[y] && grid[y][x] ? grid[y][x] : "."))
+  );
+  grid = next;
+  ensureUnique("S");
+  ensureUnique("G");
+  renderGrid();
+});
 
-if (clearGridEl) {
-  clearGridEl.addEventListener("click", () => {
-    withButtonLoading(clearGridEl, "Limpando...", async () => {
-      createGrid(grid[0].length, grid.length);
-      renderGrid();
-    });
-  });
-}
+document.querySelector("#clear-grid").addEventListener("click", () => {
+  createGrid(grid[0].length, grid.length);
+  renderGrid();
+});
+
+document.querySelector("#export-map").addEventListener("click", () => {
+  outputEl.value = JSON.stringify(exportMapArray(), null, 2);
+});
+
+document.querySelector("#export-level").addEventListener("click", () => {
+  outputEl.value = `${JSON.stringify(exportLevelObject(), null, 2)},`;
+});
+
+document.querySelector("#copy-output").addEventListener("click", async () => {
+  if (!outputEl.value.trim()) return;
+  try {
+    await navigator.clipboard.writeText(outputEl.value);
+  } catch {
+    outputEl.select();
+    document.execCommand("copy");
+  }
+});
+
+document.querySelector("#import-map").addEventListener("click", () => {
+  const raw = inputEl.value.trim();
+  if (!raw) return;
+  try {
+    const payload = parseImportPayload(raw);
+    const level = resolveImportedLevel(payload);
+    applyLevelToEditor(level);
+    setStatus(`Fase carregada: ${nameEl.value}`);
+  } catch {
+    setStatus("Nao foi possivel importar. Use map[], objeto de fase ou array de fases.", true);
+  }
+});
 
 if (loadExistingLevelEl) {
   loadExistingLevelEl.addEventListener("click", () => {
-    withButtonLoading(loadExistingLevelEl, "Carregando...", async () => {
-      const index = Number(existingLevelEl.value);
-      if (!Number.isInteger(index) || !LEVELS[index]) {
-        setStatus("Selecione uma fase existente para carregar.", true);
-        return;
-      }
-      applyLevelToEditor(LEVELS[index]);
-      setStatus(`Fase carregada: ${LEVELS[index].name}`);
-    });
+    const index = Number(existingLevelEl.value);
+    if (!Number.isInteger(index) || !LEVELS[index]) {
+      setStatus("Selecione uma fase existente para carregar.", true);
+      return;
+    }
+    applyLevelToEditor(LEVELS[index]);
+    setStatus(`Fase carregada de levels.js: ${LEVELS[index].name}`);
+  });
+}
+
+if (chooseLevelsFileEl) {
+  chooseLevelsFileEl.addEventListener("click", async () => {
+    try {
+      const handle = await chooseLevelsFile();
+      setStatus(`Arquivo selecionado: ${handle.name}`);
+    } catch (error) {
+      setStatus(error.message || "Nao foi possivel selecionar levels.js.", true);
+    }
   });
 }
 
 if (saveNewLevelEl) {
-  saveNewLevelEl.addEventListener("click", () => {
-    withButtonLoading(saveNewLevelEl, "Salvando...", async () => {
-      try {
-        await saveAsNewLevel();
-        setStatus("Nova fase criada e salva localmente.");
-      } catch (error) {
-        setStatus(error.message || "Falha ao salvar nova fase.", true);
-      }
-    });
+  saveNewLevelEl.addEventListener("click", async () => {
+    try {
+      await saveAsNewLevel();
+      setStatus("Nova fase salva no levels.js.");
+    } catch (error) {
+      setStatus(error.message || "Falha ao salvar nova fase.", true);
+    }
   });
 }
 
 if (saveSelectedLevelEl) {
-  saveSelectedLevelEl.addEventListener("click", () => {
-    withButtonLoading(saveSelectedLevelEl, "Salvando...", async () => {
-      try {
-        await saveSelectedLevel();
-        setStatus("Fase selecionada atualizada e salva localmente.");
-      } catch (error) {
-        setStatus(error.message || "Falha ao atualizar fase selecionada.", true);
-      }
-    });
+  saveSelectedLevelEl.addEventListener("click", async () => {
+    try {
+      await saveSelectedLevel();
+      setStatus("Fase selecionada atualizada no levels.js.");
+    } catch (error) {
+      setStatus(error.message || "Falha ao atualizar fase selecionada.", true);
+    }
   });
-}
-
-if (deleteSelectedLevelEl) {
-  deleteSelectedLevelEl.addEventListener("click", () => {
-    withButtonLoading(deleteSelectedLevelEl, "Excluindo...", async () => {
-      try {
-        const removedName = await deleteSelectedLevel();
-        setStatus(`Fase excluida: ${removedName}.`);
-      } catch (error) {
-        setStatus(error.message || "Falha ao excluir fase.", true);
-      }
-    });
-  });
-}
-
-if (moveSelectedLevelEl) {
-  moveSelectedLevelEl.addEventListener("click", () => {
-    withButtonLoading(moveSelectedLevelEl, "Movendo...", async () => {
-      try {
-        const result = await moveSelectedLevel();
-        if (result.moved) {
-          setStatus(`Fase movida para a posicao ${result.toDisplay}.`);
-        } else {
-          setStatus(`A fase ja esta na posicao ${result.toDisplay}.`);
-        }
-      } catch (error) {
-        setStatus(error.message || "Falha ao mover fase.", true);
-      }
-    });
-  });
-}
-
-if (resetLocalLevelsEl) {
-  resetLocalLevelsEl.addEventListener("click", () => {
-    withButtonLoading(resetLocalLevelsEl, "Restaurando...", async () => {
-      localStorage.removeItem(LEVELS_STORAGE_KEY);
-      syncInMemoryLevels(defaultLevels);
-      existingLevelEl.value = "";
-      setStatus("Fases padrao restauradas. Salvamentos locais removidos.");
-    });
-  });
-}
-
-const localLevels = loadLocalLevels();
-if (localLevels && localLevels.length) {
-  syncInMemoryLevels(localLevels);
-  setStatus("Fases locais carregadas automaticamente.");
-} else {
-  syncInMemoryLevels(defaultLevels);
 }
 
 createGrid(52, 18);
+populateExistingLevels();
 renderPalette();
 renderGrid();

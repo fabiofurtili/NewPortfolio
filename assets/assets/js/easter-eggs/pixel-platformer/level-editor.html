@@ -48,14 +48,14 @@
         <span><strong>P Q U</strong> AguaA (esq/meio/dir)</span>
         <span><strong>Z</strong> Lava (dano)</span>
         <span><strong>a b c d e f g h i j</strong> ParedeA (combinavel)</span>
-        <span><strong>#</strong> Paredes/Pisos</span>
+        <span><strong># % @</strong> Paredes/Pisos</span>
         <span><strong>=</strong> Ponte</span>
         <span><strong>^</strong> Espinho (dano)</span>
         <span><strong>C</strong> Moeda</span>
-        <span><strong>N</strong> Checkpoint</span>
         <span><strong>E</strong> Inimigo</span>
         <span><strong>D</strong> Porta</span>
         <span><strong>B Y K L</strong> Bau/Chave/Alavanca</span>
+        <span><strong>T H W R O X V M I</strong> Decorativos</span>
         <span><strong>S</strong> Spawn</span>
         <span><strong>G</strong> Objetivo</span>
         <span><strong>.</strong> Vazio</span>
@@ -65,15 +65,20 @@
 
     <section class="panel io">
       <div class="row">
-        <button id="save-selected-level" type="button">Salvar fase selecionada</button>
-        <button id="save-new-level" type="button">Criar nova fase</button>
-        <button id="delete-selected-level" type="button">Excluir fase selecionada</button>
-        <button id="reset-local-levels" type="button">Restaurar fases padrao</button>
+        <button id="export-level" type="button">Exportar objeto de fase</button>
+        <button id="export-map" type="button">Exportar apenas map</button>
+        <button id="copy-output" type="button">Copiar output</button>
       </div>
-      <div class="row move-row">
-        <input id="move-target-index" type="number" min="1" step="1" placeholder="Mover para posicao (ex.: 4)">
-        <button id="move-selected-level" type="button">Mover fase selecionada</button>
+      <div class="row">
+        <button id="choose-levels-file" type="button">Selecionar arquivo levels.js</button>
+        <button id="save-selected-level" type="button">Salvar alteracao na fase selecionada</button>
+        <button id="save-new-level" type="button">Salvar como nova fase</button>
       </div>
+      <textarea id="output" spellcheck="false"></textarea>
+      <div class="row">
+        <button id="import-map" type="button">Importar map (JSON)</button>
+      </div>
+      <textarea id="input" spellcheck="false" placeholder='Cole aqui um array JSON, ex.: ["....","#..G"]'></textarea>
     </section>
   </main>
 

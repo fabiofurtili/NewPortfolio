@@ -101,36 +101,6 @@ button:hover {
   border-color: rgba(56, 189, 248, 0.6);
 }
 
-button:disabled {
-  opacity: 0.72;
-  cursor: not-allowed;
-}
-
-button.is-loading {
-  position: relative;
-  padding-right: 28px;
-}
-
-button.is-loading::after {
-  content: "";
-  width: 12px;
-  height: 12px;
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  margin-top: -6px;
-  border-radius: 50%;
-  border: 2px solid rgba(226, 232, 240, 0.35);
-  border-top-color: #e2e8f0;
-  animation: btn-spin 0.7s linear infinite;
-}
-
-@keyframes btn-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 .row {
   display: flex;
   flex-wrap: wrap;
@@ -154,15 +124,6 @@ button.is-loading::after {
 .io .row button {
   flex: 1 1 0;
   min-width: 0;
-}
-
-.io .move-row {
-  margin-top: 8px;
-}
-
-.io .move-row input {
-  flex: 0 0 260px;
-  min-width: 180px;
 }
 
 .status {
@@ -344,6 +305,14 @@ button.is-loading::after {
   background-image: url("./images/tiles/floor_tile.png");
 }
 
+.thumb-ground-moss {
+  background-image: url("./images/tiles/thumbs/ground_moss.png");
+}
+
+.thumb-ground-crack {
+  background-image: url("./images/tiles/thumbs/ground_crack.png");
+}
+
 .thumb-bridge {
   background-image: url("./images/tiles/thumbs/bridge.png");
 }
@@ -366,10 +335,6 @@ button.is-loading::after {
 
 .thumb-coin {
   background-image: url("./images/items/coin/coin_0.png");
-}
-
-.thumb-checkpoint {
-  background-image: url("./images/tiles/checkpoint/checkpoint_inactive.png");
 }
 
 .thumb-enemy {
@@ -399,6 +364,42 @@ button.is-loading::after {
 
 .thumb-switch {
   background-image: url("./images/tiles/thumbs/switch.png");
+}
+
+.thumb-torch {
+  background-image: url("./images/tiles/thumbs/torch.png");
+}
+
+.thumb-chain {
+  background-image: url("./images/tiles/thumbs/chain.png");
+}
+
+.thumb-web {
+  background-image: url("./images/tiles/thumbs/web.png");
+}
+
+.thumb-rune {
+  background-image: url("./images/tiles/thumbs/rune.png");
+}
+
+.thumb-barrel {
+  background-image: url("./images/tiles/thumbs/barrel.png");
+}
+
+.thumb-crate {
+  background-image: url("./images/tiles/thumbs/crate.png");
+}
+
+.thumb-vase {
+  background-image: url("./images/tiles/thumbs/vase.png");
+}
+
+.thumb-mushroom {
+  background-image: url("./images/tiles/thumbs/mushroom.png");
+}
+
+.thumb-window {
+  background-image: url("./images/tiles/thumbs/window.png");
 }
 
 .thumb-spawn {
@@ -588,6 +589,20 @@ button.is-loading::after {
   background-image: url("./images/tiles/wall_tile.png");
 }
 
+.cell-ground-moss {
+  background-image: url("./images/tiles/thumbs/ground_moss.png");
+  background-size: cover;
+  background-position: center;
+  color: rgba(226, 232, 240, 0.85);
+}
+
+.cell-ground-crack {
+  background-image: url("./images/tiles/thumbs/ground_crack.png");
+  background-size: cover;
+  background-position: center;
+  color: rgba(226, 232, 240, 0.85);
+}
+
 .cell-bridge {
   background-image: url("./images/tiles/thumbs/bridge.png");
   background-size: cover;
@@ -628,13 +643,6 @@ button.is-loading::after {
   background-size: cover;
   background-position: center;
   color: #fef08a;
-}
-
-.cell-checkpoint {
-  background-image: url("./images/tiles/checkpoint/checkpoint_inactive.png");
-  background-size: cover;
-  background-position: center;
-  color: #bbf7d0;
 }
 
 .cell-enemy {
@@ -682,6 +690,69 @@ button.is-loading::after {
   color: #e2e8f0;
 }
 
+.cell-torch {
+  background-image: url("./images/tiles/thumbs/torch.png");
+  background-size: cover;
+  background-position: center;
+  color: #fde68a;
+}
+
+.cell-chain {
+  background-image: url("./images/tiles/thumbs/chain.png");
+  background-size: cover;
+  background-position: center;
+  color: #e2e8f0;
+}
+
+.cell-web {
+  background-image: url("./images/tiles/thumbs/web.png");
+  background-size: cover;
+  background-position: center;
+  color: #e2e8f0;
+}
+
+.cell-rune {
+  background-image: url("./images/tiles/thumbs/rune.png");
+  background-size: cover;
+  background-position: center;
+  color: #fecaca;
+}
+
+.cell-barrel {
+  background-image: url("./images/tiles/thumbs/barrel.png");
+  background-size: cover;
+  background-position: center;
+  color: #fcd34d;
+}
+
+.cell-crate {
+  background-image: url("./images/tiles/thumbs/crate.png");
+  background-size: cover;
+  background-position: center;
+  color: #fef3c7;
+}
+
+.cell-vase {
+  background-image: url("./images/tiles/thumbs/vase.png");
+  background-size: cover;
+  background-position: center;
+  color: #ffedd5;
+}
+
+.cell-mushroom {
+  background-image: url("./images/tiles/thumbs/mushroom.png");
+  background-size: cover;
+  background-position: center;
+  color: #fecdd3;
+}
+
+.cell-window {
+  background-image: url("./images/tiles/thumbs/window.png");
+  background-size: cover;
+  background-position: center;
+  color: #dbeafe;
+}
+
 .cell-spawn {
   background: #0369a1;
   color: #bae6fd;
@@ -690,6 +761,14 @@ button.is-loading::after {
 .cell-goal {
   background: #0f766e;
   color: #ccfbf1;
+}
+
+.io textarea {
+  width: 100%;
+  min-height: 150px;
+  margin-top: 8px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
 }
 
 @media (max-width: 760px) {
@@ -710,10 +789,6 @@ button.is-loading::after {
   }
 
   .io .row button {
-    flex: 1 1 180px;
-  }
-
-  .io .move-row input {
     flex: 1 1 180px;
   }
 
